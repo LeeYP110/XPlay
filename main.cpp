@@ -15,7 +15,7 @@ std::string url = "http://ivi.bupt.edu.cn/hls/cctv1hd.m3u8";
 #define V_THREAD 1
 #define A_THREAD 1
 
-#if 1
+#if 0
 class TestThread : public QThread
 {
 public:

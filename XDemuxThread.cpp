@@ -89,7 +89,7 @@ void XDemuxThread::run()
         if (demux == nullptr)
         {
             mux.unlock();
-            msleep(5);
+            msleep(1);
             continue;
         }
 

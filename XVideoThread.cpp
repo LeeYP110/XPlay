@@ -78,12 +78,12 @@ void XVideoThread::run()
         }
 
         // Í¬²½ÅÐ¶Ï
-        //if (synpts < decode->pts)
-        //{
-        //    mux.unlock();
-        //    msleep(1);
-        //    continue;
-        //}
+        if (synpts < decode->pts)
+        {
+            mux.unlock();
+            msleep(1);
+            continue;
+        }
 
 
         AVPacket* pkt = packs.front();
