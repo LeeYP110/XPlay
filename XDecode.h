@@ -10,25 +10,28 @@ struct AVPacket;
 class XDecode
 {
 public:
-	XDecode();
-	virtual ~XDecode();
+    XDecode();
+    virtual ~XDecode();
 
-	// 打开解码器，并释放空间
-	bool isAudio = false;
-	virtual bool Open(AVCodecParameters* para);
+    // 打开解码器，并释放空间
+    bool isAudio = false;
 
-	// 发送到解码线程，清理pkg空间（对象和媒体内容）
-	virtual bool Send(AVPacket* pkt);
+    // 当前解码到的pts
+    long long pts = 0;
+    virtual bool Open(AVCodecParameters* para);
 
-	// 获取解码线程，一次send可能需要多次Recv，最后一次send null再recv多次
-	// 每次复制一份由调用者释放 av_frame_free
-	virtual AVFrame* Recv();
+    // 发送到解码线程，清理pkg空间（对象和媒体内容）
+    virtual bool Send(AVPacket* pkt);
 
-	virtual void Clear();
-	virtual void Close();
+    // 获取解码线程，一次send可能需要多次Recv，最后一次send null再recv多次
+    // 每次复制一份由调用者释放 av_frame_free
+    virtual AVFrame* Recv();
+
+    virtual void Clear();
+    virtual void Close();
 
 protected:
-	AVCodecContext* codec = nullptr;
-	std::mutex mux;
+    AVCodecContext* codec = nullptr;
+    std::mutex mux;
 };
 

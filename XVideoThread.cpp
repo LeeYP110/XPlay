@@ -25,6 +25,7 @@ bool XVideoThread::Open(AVCodecParameters * para, IVideoCall* call, int width, i
     }
 
     mux.lock();
+    synpts = 0;
     if (decode == nullptr)
     {
         decode = new XDecode();
@@ -33,7 +34,7 @@ bool XVideoThread::Open(AVCodecParameters * para, IVideoCall* call, int width, i
     bool re = decode->Open(para); // 函数中释放para
     if (re == false)
     {
-        std::cout << "audio decode->Open(para) failed" << std::endl;
+        std::cout << "video decode->Open(para) failed" << std::endl;
         //mux.unlock();
         //return false;
     }
@@ -75,6 +76,15 @@ void XVideoThread::run()
             msleep(1);
             continue;
         }
+
+        // 同步判断
+        //if (synpts < decode->pts)
+        //{
+        //    mux.unlock();
+        //    msleep(1);
+        //    continue;
+        //}
+
 
         AVPacket* pkt = packs.front();
         packs.pop_front();

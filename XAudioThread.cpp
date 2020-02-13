@@ -22,6 +22,7 @@ bool XAudioThread::Open(AVCodecParameters * para, int sampleRate, int channels)
     }
 
     mux.lock();
+    pts = 0;
     if (decode == nullptr)
     {
         decode = new XDecode();
@@ -122,6 +123,10 @@ void XAudioThread::run()
             {
                 break;
             }
+
+            // 减去缓冲中未播放的时间
+            pts = decode->pts - ap->GetNoPlayMs();
+            //std::cout << "audio pts = " << pts << std::endl;
 
             // 重采样
             int size = res->Resample(frame, pcm);

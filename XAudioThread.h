@@ -22,8 +22,11 @@ public:
     void run();
 
     // 最大队列
-    int maxList = 1000;
+    int maxList = 10000;
     bool isExit = false;
+
+    // 当前音频播放的pts
+    long long pts = 0;
 protected:
 
     std::list<AVPacket*> packs;
