@@ -21,7 +21,7 @@ public:
     void run();
 
     // 最大队列
-    int maxList = 10000;
+    int maxList = 100;
     bool isExit = false;
 
     // 同步时间由外部传入

@@ -81,7 +81,7 @@ void XVideoThread::run()
         if (synpts < decode->pts)
         {
             mux.unlock();
-            msleep(1);
+            msleep(5);
             continue;
         }
 

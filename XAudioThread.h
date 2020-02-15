@@ -22,7 +22,7 @@ public:
     void run();
 
     // 最大队列
-    int maxList = 10000;
+    int maxList = 1;
     bool isExit = false;
 
     // 当前音频播放的pts
