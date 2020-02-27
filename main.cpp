@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
     XPlay w;
     w.show();
 
-    url = "../../bin/win64/Onion.mp4";
+    url = "../../bin/win64/test.mp4";
     TestThread tt;
     tt.video = w.ui.video;
 
