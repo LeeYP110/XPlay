@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>960</width>
+    <height>540</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,9 +18,22 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>600</width>
-     <height>400</height>
+     <width>681</width>
+     <height>511</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>460</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>打开文件</string>
    </property>
   </widget>
  </widget>
@@ -35,5 +48,25 @@
  <resources>
   <include location="XPlay.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>XPlayClass</receiver>
+   <slot>OpenFile()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>186</x>
+     <y>472</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>203</x>
+     <y>628</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>OpenFile()</slot>
+ </slots>
 </ui>

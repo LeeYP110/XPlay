@@ -5,28 +5,7 @@
 
 XAudioThread::XAudioThread()
 {
-
-}
-
-XAudioThread::~XAudioThread()
-{
-    isExit = true;
-    wait();
-}
-
-bool XAudioThread::Open(AVCodecParameters * para, int sampleRate, int channels)
-{
-    if (para == nullptr)
-    {
-        return false;
-    }
-
-    mux.lock();
-    pts = 0;
-    if (decode == nullptr)
-    {
-        decode = new XDecode();
-    }
+    maxList = 1;
 
     if (res == nullptr)
     {
@@ -37,7 +16,25 @@ bool XAudioThread::Open(AVCodecParameters * para, int sampleRate, int channels)
     {
         ap = XAudioPlay::Get();
     }
+}
 
+XAudioThread::~XAudioThread()
+{
+}
+
+bool XAudioThread::Open(AVCodecParameters * para, int sampleRate, int channels)
+{
+    if (para == nullptr)
+    {
+        return false;
+    }
+
+    Clear();
+
+    // TODO 还需要清理qio中数据
+
+    amux.lock();
+    pts = 0;
     bool re = res->Open(para, false);
     if (re == false)
     {
@@ -63,32 +60,33 @@ bool XAudioThread::Open(AVCodecParameters * para, int sampleRate, int channels)
         //mux.unlock();
         //return false;
     }
-    mux.unlock();
+    amux.unlock();
 
     return re;
 }
 
-void XAudioThread::Push(AVPacket * pkt)
+void XAudioThread::Close()
 {
-    if (pkt == nullptr)
+    XDecodeThread::Close();
+
+    if (res)
     {
-        return;
+        res->Close();
+        amux.lock();
+        delete res;
+        res = nullptr;
+        amux.unlock();
     }
 
-    // 阻塞
-    while (!isExit)
+    if (ap)
     {
-        mux.lock();
-        if (packs.size() < maxList)
-        {
-            packs.push_back(pkt);
-            mux.unlock();
-            break;
-        }
-        mux.unlock();
-        msleep(1);
+        ap->Close();
+        amux.lock();
+        ap = nullptr;
+        amux.unlock();
     }
 }
+
 
 void XAudioThread::run()
 {
@@ -96,21 +94,12 @@ void XAudioThread::run()
 
     while (!isExit)
     {
-        mux.lock();
-        if (packs.empty() || !decode || !res || !ap)
-        {
-            mux.unlock();
-            msleep(1);
-            continue;
-        }
-
-        AVPacket* pkt = packs.front();
-        packs.pop_front();
-
+        amux.lock();
+        AVPacket* pkt = Pop();
         bool re = decode->Send(pkt);
         if (re == false)
         {
-            mux.unlock();
+            amux.unlock();
             msleep(1);
             continue;
         }
@@ -148,7 +137,6 @@ void XAudioThread::run()
                 break;
             }
         }
-
-        mux.unlock();
+        amux.unlock();
     }
 }

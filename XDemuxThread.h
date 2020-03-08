@@ -18,6 +18,8 @@ public:
 
     // 启动所有线程
     virtual bool Start();
+    virtual void Close();
+
     void run();
     bool isExit = false;
 protected:

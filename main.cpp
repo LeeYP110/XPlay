@@ -117,10 +117,10 @@ int main(int argc, char *argv[])
     XPlay w;
     w.show();
 
-    XDemuxThread dt;
-    url = "../../bin/win64/Onion.mp4";
-    dt.Open(url.c_str(), w.ui.video);
-    dt.Start();
+    //XDemuxThread dt;
+    //url = "../../bin/win64/Onion.mp4";
+    //dt.Open(url.c_str(), w.ui.video);
+    //dt.Start();
 
     return a.exec();
 }

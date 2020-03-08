@@ -2,15 +2,13 @@
 #include <QThread>
 #include <mutex>
 #include <list>
+#include "XDecodeThread.h"
 
-struct AVCodecParameters;
-struct AVPacket;
-class XDecode;
 class XAudioPlay;
 class XResample;
 
 class XAudioThread :
-    public QThread
+    public XDecodeThread
 {
 public:
     XAudioThread();
@@ -18,20 +16,14 @@ public:
 
     // 不管成功与否都清理
     virtual bool Open(AVCodecParameters* para, int sampleRate, int channels);
-    virtual void Push(AVPacket* pkt);
-    void run();
+    virtual void Close();
 
-    // 最大队列
-    int maxList = 1;
-    bool isExit = false;
+    void run();
 
     // 当前音频播放的pts
     long long pts = 0;
 protected:
-
-    std::list<AVPacket*> packs;
-    std::mutex mux;
-    XDecode*	decode = nullptr;
+    std::mutex amux;
     XAudioPlay* ap = nullptr;
     XResample*	res = nullptr;
 };

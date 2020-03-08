@@ -9,6 +9,17 @@ extern "C"
 #include <libswresample/swresample.h>
 }
 
+
+void XFreePacket(AVPacket ** pkt)
+{
+    if (pkt == nullptr || *pkt == nullptr)
+    {
+        return;
+    }
+    av_packet_free(pkt);
+    *pkt = nullptr;
+}
+
 XDecode::XDecode()
 {
 }

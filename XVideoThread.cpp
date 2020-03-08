@@ -18,18 +18,16 @@ bool XVideoThread::Open(AVCodecParameters * para, IVideoCall* call, int width, i
         return false;
     }
 
+    Clear();
+
+    vmux.lock();
+    synpts = 0;
     this->call = call;
     if (call)
     {
         call->Init(width, height);
     }
-
-    mux.lock();
-    synpts = 0;
-    if (decode == nullptr)
-    {
-        decode = new XDecode();
-    }
+    vmux.unlock();
 
     bool re = decode->Open(para); // 函数中释放para
     if (re == false)
@@ -39,60 +37,40 @@ bool XVideoThread::Open(AVCodecParameters * para, IVideoCall* call, int width, i
         //return false;
     }
 
-    mux.unlock();
     return re;
 }
 
-void XVideoThread::Push(AVPacket * pkt)
-{
-    if (pkt == nullptr)
-    {
-        return;
-    }
 
-    // 阻塞
-    while (!isExit)
-    {
-        mux.lock();
-        if (packs.size() < maxList)
-        {
-            packs.push_back(pkt);
-            mux.unlock();
-            break;
-        }
-        mux.unlock();
-        msleep(1);
-    }
-}
 
 void XVideoThread::run()
 {
     while (!isExit)
     {
-        mux.lock();
-        if (packs.empty() || !decode)
+        vmux.lock();
+
+        // 同步判断
+        if (synpts > 0 && synpts < decode->pts)
         {
-            mux.unlock();
+            vmux.unlock();
             msleep(1);
             continue;
         }
 
-        // 同步判断
-        if (synpts < decode->pts)
-        {
-            mux.unlock();
-            msleep(5);
-            continue;
-        }
+//         if (packs.empty() || !decode)
+//         {
+//             vmux.unlock();
+//             msleep(1);
+//             continue;
+//         }
+//
+//         AVPacket* pkt = packs.front();
+//         packs.pop_front();
 
-
-        AVPacket* pkt = packs.front();
-        packs.pop_front();
-
+        AVPacket* pkt = Pop();
         bool re = decode->Send(pkt);
         if (re == false)
         {
-            mux.unlock();
+            vmux.unlock();
             msleep(1);
             continue;
         }
@@ -113,6 +91,6 @@ void XVideoThread::run()
             }
         }
 
-        mux.unlock();
+        vmux.unlock();
     }
 }

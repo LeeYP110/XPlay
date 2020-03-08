@@ -65,6 +65,23 @@ bool XDemuxThread::Open(const char* url, IVideoCall * call)
 bool XDemuxThread::Start()
 {
     mux.lock();
+
+    if (demux == nullptr)
+    {
+        demux = new XDemux();
+    }
+
+    if (at == nullptr)
+    {
+        at = new XAudioThread();
+    }
+
+    if (vt == nullptr)
+    {
+        vt = new XVideoThread();
+    }
+
+    // Æô¶¯Ïß³Ì
     QThread::start();
 
     if (vt)
@@ -79,6 +96,27 @@ bool XDemuxThread::Start()
 
     mux.unlock();
     return false;
+}
+
+void XDemuxThread::Close()
+{
+    isExit = true;
+    wait();
+    if (vt)
+    {
+        vt->Close();
+    }
+    if (at)
+    {
+        at->Close();
+    }
+
+    mux.lock();
+    delete vt;
+    delete at;
+    vt = nullptr;
+    at = nullptr;
+    mux.unlock();
 }
 
 void XDemuxThread::run()

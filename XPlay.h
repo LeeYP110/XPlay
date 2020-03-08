@@ -5,11 +5,14 @@
 
 class XPlay : public QWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	XPlay(QWidget *parent = Q_NULLPTR);
+    XPlay(QWidget *parent = Q_NULLPTR);
+    ~XPlay();
+public slots:
+    void OpenFile();
 
-//private:
-	Ui::XPlayClass ui;
+private:
+    Ui::XPlayClass ui;
 };
