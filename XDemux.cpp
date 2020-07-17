@@ -128,6 +128,7 @@ AVPacket * XDemux::Read()
 
     // 读取一帧并分配空间
     int re = av_read_frame(ic, pkt);
+	
     if (re != 0)
     {
         mux.unlock();

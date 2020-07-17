@@ -88,6 +88,7 @@ bool XDecode::Send(AVPacket * pkt)
     }
 
     int re = avcodec_send_packet(codec, pkt);
+	
     mux.unlock();
 
     av_packet_free(&pkt);
