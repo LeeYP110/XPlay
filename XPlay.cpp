@@ -11,6 +11,7 @@ XPlay::XPlay(QWidget *parent)
 {
     ui.setupUi(this);
     dt.Start();
+	ui.playPos->hide();
 
 	isSliderPress = false;
 	startTimer(40);
@@ -98,7 +99,7 @@ void XPlay::OpenFile()
 {
     // 选择文件
     QString name = QFileDialog::getOpenFileName(this, QString::fromLocal8Bit("选择视频文件"));
-	name = "http://ivi.bupt.edu.cn/hls/cctv1hd.m3u8";
+	//name = "http://ivi.bupt.edu.cn/hls/cctv1hd.m3u8";
     if (name.isEmpty())
     {
         qDebug() << QString("no select file");
@@ -111,6 +112,7 @@ void XPlay::OpenFile()
         QMessageBox::information(0, "error", "open file failed");
         return;
     }
+	ui.playPos->show();
 	dt.SetPause(false);
 	SetPause(dt.isPause);
 }

@@ -11,6 +11,8 @@ class XSlider : public QSlider
 public:
 	XSlider(QWidget *parent = nullptr);
 	~XSlider();
+
+	void Init();
 	void mousePressEvent(QMouseEvent* e);
 	void mouseReleaseEvent(QMouseEvent *e);
 
