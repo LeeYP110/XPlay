@@ -11,11 +11,9 @@ extern "C"
 
 // 自动加双引号
 #define GET_STR(x) #x
-
 #define A_VER 3
 #define T_VER 4
 
-FILE* fp = nullptr;
 
 // 顶点shader
 const char* vString = GET_STR(
@@ -48,9 +46,6 @@ const char *tString = GET_STR(
     gl_FragColor = vec4(rgb, 1.0);
 }
                       );
-
-// 准备yuv数据
-// ffmpeg -i Onion.mp4 -t 10 -s 240x160 -pix_fmt yuv420p out240x160.yuv
 
 XVideoWidget::XVideoWidget(QWidget *parent)
     : QOpenGLWidget(parent)
@@ -116,6 +111,64 @@ void XVideoWidget::Init(int width, int height)
     mux.unlock();
 }
 
+void XVideoWidget::initializeGL()
+{
+	qDebug() << "initializeGL";
+
+	mux.lock();
+	// 初始化O喷GL函数
+	initializeOpenGLFunctions();
+
+	// program加载ahader（顶点和片元）脚本
+	qDebug() << program.addShaderFromSourceCode(QGLShader::Fragment, tString);
+	qDebug() << program.addShaderFromSourceCode(QGLShader::Vertex, vString);
+
+	//设置顶点坐标的变量
+	program.bindAttributeLocation("vertexIn", A_VER);
+
+	//设置材质坐标
+	program.bindAttributeLocation("textureIn", T_VER);
+
+	//编译shader
+	qDebug() << "program.link() = " << program.link();
+	qDebug() << "program.bind() = " << program.bind();
+
+	//传递顶点和材质坐标
+	//顶点
+	static const GLfloat ver[] =
+	{
+		-1.0f,-1.0f,
+		1.0f,-1.0f,
+		-1.0f, 1.0f,
+		1.0f,1.0f
+	};
+
+	//材质
+	static const GLfloat tex[] =
+	{
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f
+	};
+
+	//顶点
+	glVertexAttribPointer(A_VER, 2, GL_FLOAT, 0, 0, ver);
+	glEnableVertexAttribArray(A_VER);
+
+	//材质
+	glVertexAttribPointer(T_VER, 2, GL_FLOAT, 0, 0, tex);
+	glEnableVertexAttribArray(T_VER);
+
+	// 从shader获取材质
+	unis[0] = program.uniformLocation("tex_y");
+	unis[1] = program.uniformLocation("tex_u");
+	unis[2] = program.uniformLocation("tex_v");
+
+	mux.unlock();
+}
+
+static bool recvFrame = false;
 void XVideoWidget::Repaint(AVFrame * frame)
 {
     if (frame == nullptr)
@@ -156,75 +209,20 @@ void XVideoWidget::Repaint(AVFrame * frame)
 		{
 			memcpy(datas[2] + width / 2 * i, frame->data[2] + frame->linesize[0] * i, width);
 		}
-	}
-
-
-
-    
+	}    
     mux.unlock();
     av_frame_free(&frame);
+	recvFrame = true;
     update();
-}
-
-void XVideoWidget::initializeGL()
-{
-    qDebug() << "initializeGL";
-
-    mux.lock();
-    // 初始化O喷GL函数
-    initializeOpenGLFunctions();
-
-    // program加载ahader（顶点和片元）脚本
-    qDebug() <<  program.addShaderFromSourceCode(QGLShader::Fragment, tString);
-    qDebug() << program.addShaderFromSourceCode(QGLShader::Vertex, vString);
-
-    //设置顶点坐标的变量
-    program.bindAttributeLocation("vertexIn", A_VER);
-
-    //设置材质坐标
-    program.bindAttributeLocation("textureIn", T_VER);
-
-    //编译shader
-    qDebug() << "program.link() = " << program.link();
-    qDebug() << "program.bind() = " << program.bind();
-
-    //传递顶点和材质坐标
-    //顶点
-    static const GLfloat ver[] =
-    {
-        -1.0f,-1.0f,
-        1.0f,-1.0f,
-        -1.0f, 1.0f,
-        1.0f,1.0f
-    };
-
-    //材质
-    static const GLfloat tex[] =
-    {
-        0.0f, 1.0f,
-        1.0f, 1.0f,
-        0.0f, 0.0f,
-        1.0f, 0.0f
-    };
-
-    //顶点
-    glVertexAttribPointer(A_VER, 2, GL_FLOAT, 0, 0, ver);
-    glEnableVertexAttribArray(A_VER);
-
-    //材质
-    glVertexAttribPointer(T_VER, 2, GL_FLOAT, 0, 0, tex);
-    glEnableVertexAttribArray(T_VER);
-
-    // 从shader获取材质
-    unis[0] = program.uniformLocation("tex_y");
-    unis[1] = program.uniformLocation("tex_u");
-    unis[2] = program.uniformLocation("tex_v");
-
-    mux.unlock();
 }
 
 void XVideoWidget::paintGL()
 {
+	if (recvFrame == false)
+	{
+		return;
+	}
+
     mux.lock();
 
     glActiveTexture(GL_TEXTURE0);

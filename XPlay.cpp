@@ -47,6 +47,7 @@ void XPlay::resizeEvent(QResizeEvent * e)
 	ui.isPlay->move(ui.openFile->x() + ui.openFile->width() + 10, ui.openFile->y());
 
 	ui.video->resize(this->size());
+	
 }
 
 void XPlay::mouseDoubleClickEvent(QMouseEvent * e)
