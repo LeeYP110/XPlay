@@ -20,6 +20,16 @@ void XFreePacket(AVPacket ** pkt)
     *pkt = nullptr;
 }
 
+void XFreeFrame(AVFrame ** frame)
+{
+	if (frame == nullptr || *frame == nullptr)
+	{
+		return;
+	}
+	av_frame_free(frame);
+	*frame = nullptr;
+}
+
 XDecode::XDecode()
 {
 }
@@ -87,8 +97,7 @@ bool XDecode::Send(AVPacket * pkt)
         return false;
     }
 
-    int re = avcodec_send_packet(codec, pkt);
-	
+    int re = avcodec_send_packet(codec, pkt);	
     mux.unlock();
 
     av_packet_free(&pkt);

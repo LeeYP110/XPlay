@@ -19,9 +19,18 @@ public:
     // 启动所有线程
     virtual bool Start();
     virtual void Close();
+	virtual void Clear();
+
+	virtual void Seek(double pos);
 
     void run();
     bool isExit = false;
+
+	long long pts = 0;
+	long long totalMs = 0;
+
+	void SetPause(bool isPause);
+	bool isPause = false;
 protected:
     std::mutex mux;
     XDemux* demux = nullptr;

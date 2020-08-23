@@ -34,7 +34,7 @@ bool XResample::Open(AVCodecParameters * para, bool isClear)
 
     // 如果actx为null会分配空间
     actx = swr_alloc_set_opts(actx,
-                              av_get_default_channel_layout(2),	// 输出格式
+                              av_get_default_channel_layout(para->channels),	// 输出格式
                               (AVSampleFormat)outFormat,			// 输出样本格式
                               para->sample_rate,					// 采样率
                               av_get_default_channel_layout(para->channels),

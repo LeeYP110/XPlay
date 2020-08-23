@@ -63,7 +63,7 @@ void XDecodeThread::Clear()
         AVPacket* pkt = packs.front();
         XFreePacket(&pkt);
         packs.pop_front();
-    }
+    }	
     mux.unlock();
 }
 

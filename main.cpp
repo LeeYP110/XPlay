@@ -12,6 +12,7 @@
 
 std::string url = "http://ivi.bupt.edu.cn/hls/cctv1hd.m3u8";
 
+
 #define V_THREAD 1
 #define A_THREAD 1
 
@@ -99,7 +100,8 @@ int main(int argc, char *argv[])
     XPlay w;
     w.show();
 
-    url = "../../bin/win64/test.mp4";
+    //url = "../../bin/win64/test.mp4";
+	//url = "rtmp://58.200.131.2:1935/livetv/hunantv";
     TestThread tt;
     tt.video = w.ui.video;
 
@@ -118,7 +120,7 @@ int main(int argc, char *argv[])
     w.show();
 
     //XDemuxThread dt;
-    //url = "../../bin/win64/Onion.mp4";
+    ////url = "../../bin/win64/Onion.mp4";
     //dt.Open(url.c_str(), w.ui.video);
     //dt.Start();
 

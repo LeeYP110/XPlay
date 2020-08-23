@@ -3,6 +3,10 @@
 #include "XVideoThread.h"
 #include "XAudioThread.h"
 
+// extern "C" {
+// #include "libavformat/avformat.h"
+// }
+
 XDemuxThread::XDemuxThread()
 {
 }
@@ -57,6 +61,7 @@ bool XDemuxThread::Open(const char* url, IVideoCall * call)
     {
         std::cout << "at->Open  failed" << std::endl;
     }
+	totalMs = demux->totalMs;
     mux.unlock();
     std::cout << "XDemuxThread::Open: " << re << std::endl;
     return re;
@@ -119,21 +124,88 @@ void XDemuxThread::Close()
     mux.unlock();
 }
 
+void XDemuxThread::Clear()
+{
+	mux.lock();
+	if (demux)
+	{
+		demux->Clear();
+	}
+	if (vt)
+	{
+		vt->Clear();
+	}
+	if (at)
+	{
+		at->Clear();
+	}
+	mux.unlock();
+}
+
+void XDemuxThread::Seek(double pos)
+{
+	// 清理缓冲
+	Clear();
+
+	mux.lock();
+	bool status = this->isPause;
+	mux.unlock();
+
+	// 暂停 
+	SetPause(true);
+
+	mux.lock();
+	if (demux)
+	{
+		demux->Seek(pos);
+	}
+
+	// 实际的seek帧
+	long long seekPts = pos * demux->totalMs;
+	pts = seekPts;
+	while (!isExit)
+	{
+		AVPacket* pkt = demux->ReadVideo();
+		if (pkt == nullptr)
+		{
+			break;
+		}
+		bool result = vt->RepaintPts(pkt, seekPts);
+		if (result) // 如果解码到seekPts
+		{
+			break;
+		}
+	}
+
+	mux.unlock();
+
+	SetPause(status);// seek保持seek时状态	
+}
+
 void XDemuxThread::run()
 {
     while (!isExit)
     {
-        mux.lock();
+		mux.lock();
+		if (isPause)
+		{
+			mux.unlock();
+			msleep(5);
+			continue;
+		}
+
+        
         if (demux == nullptr)
         {
             mux.unlock();
-            msleep(1);
+            msleep(5);
             continue;
         }
 
         // 音视频同步
         if (at && vt)
         {
+			pts = at->pts;
             vt->synpts = at->pts;
         }
 
@@ -163,4 +235,20 @@ void XDemuxThread::run()
 
         mux.unlock();
     }
+}
+
+void XDemuxThread::SetPause(bool isPause)
+{
+	//mux.lock(); // 存在一定阻塞
+	this->isPause = isPause;
+	if (at)
+	{
+		at->SetPause(isPause);
+	}
+
+	if (vt)
+	{
+		vt->SetPause(isPause);
+	}
+	//mux.unlock();
 }

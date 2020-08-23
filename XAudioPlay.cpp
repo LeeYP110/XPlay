@@ -91,6 +91,16 @@ public:
         return true;
     }
 
+	void Clear()
+	{
+		mux.lock();
+		if (io)
+		{
+			io->reset();
+		}
+		mux.unlock();
+	}
+
     virtual bool WriteData(char* buf, int size)
     {
         if (buf == nullptr || size <= 0)
@@ -128,6 +138,25 @@ public:
         return free;
 
     }
+
+	void SetPause(bool isPause)
+	{
+		mux.lock();
+		if (out == nullptr)
+		{
+			mux.unlock();
+			return;
+		}
+
+		if (isPause)
+		{
+			out->suspend();
+		}
+		else {
+			out->resume();
+		}
+		mux.unlock();
+	}
 
 private:
 

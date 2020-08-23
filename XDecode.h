@@ -7,6 +7,7 @@ struct AVCodecContext;
 struct AVFrame;
 struct AVPacket;
 extern void XFreePacket(AVPacket** pkt);
+extern void XFreeFrame(AVFrame ** frame);
 class XDecode
 {
 public:

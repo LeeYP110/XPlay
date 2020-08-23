@@ -48,6 +48,13 @@ void XVideoThread::run()
     {
         vmux.lock();
 
+		if (isPause)
+		{
+			vmux.unlock();
+			msleep(5);
+			continue;
+		}
+
         // 同步判断
         if (synpts > 0 && synpts < decode->pts)
         {
@@ -93,4 +100,51 @@ void XVideoThread::run()
 
         vmux.unlock();
     }
+}
+
+bool XVideoThread::RepaintPts(AVPacket * pkt, long long seekPts)
+{
+	vmux.lock();
+	bool result = decode->Send(pkt);
+	if (!result)
+	{
+		vmux.unlock();
+		return true; // 表述结束解码
+	}
+
+	AVFrame* frame = decode->Recv();
+	if (frame == nullptr)
+	{
+		vmux.unlock();
+		return false;
+	}
+
+	if (decode->pts >= seekPts)
+	{
+		if (call)
+		{
+			call->Repaint(frame);
+		}
+		vmux.unlock();
+		return true;
+	}
+	XFreeFrame(&frame);
+	vmux.unlock();
+
+	return false;
+}
+
+void XVideoThread::Clear()
+{
+	XDecodeThread::Clear();
+	mux.lock();
+	decode->pts = 0;
+	mux.unlock();
+}
+
+void XVideoThread::SetPause(bool isPause)
+{
+	mux.lock();
+	this->isPause = isPause;
+	mux.unlock();
 }

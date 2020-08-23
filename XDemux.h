@@ -18,6 +18,7 @@ public:
 
     // 空间需要调用者释放，释放AVPacket空间和数据空间 av_packet_free
     virtual AVPacket* Read();
+	virtual AVPacket* ReadVideo();
     virtual void FreeAVPacket(AVPacket** pkt);
 
     virtual bool IsAudio(AVPacket* pkt);

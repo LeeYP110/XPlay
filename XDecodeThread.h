@@ -24,11 +24,11 @@ public:
 protected:
     // 最大队列
     int maxList = 100;
-    bool isExit = false;
+	bool isExit = false;
+	std::list<AVPacket*> packs;
+	std::mutex  mux;
+	XDecode*	decode = nullptr;
 
-    std::list<AVPacket*> packs;
-    std::mutex mux;
-    XDecode*	decode = nullptr;
 };
 #endif // X_DECODE_THREAD_H_
 

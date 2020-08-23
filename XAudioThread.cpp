@@ -65,6 +65,17 @@ bool XAudioThread::Open(AVCodecParameters * para, int sampleRate, int channels)
     return re;
 }
 
+void XAudioThread::Clear()
+{
+	XDecodeThread::Clear();
+	mux.lock();
+	if (ap)
+	{
+		ap->Clear();
+	}
+	mux.unlock();
+}
+
 void XAudioThread::Close()
 {
     XDecodeThread::Close();
@@ -90,11 +101,18 @@ void XAudioThread::Close()
 
 void XAudioThread::run()
 {
-    unsigned char* pcm = new unsigned char[1024 * 1024 * 10];
+    unsigned char* pcm = new unsigned char[1024 * 1024];
 
     while (!isExit)
     {
         amux.lock();
+		if (isPause)
+		{
+			amux.unlock();
+			msleep(1);
+			continue;
+		}
+
         AVPacket* pkt = Pop();
         bool re = decode->Send(pkt);
         if (re == false)
@@ -128,7 +146,7 @@ void XAudioThread::run()
                     break;
                 }
 
-                if (ap->GetFree() < size)
+                if (ap->GetFree() < size || isPause)
                 {
                     msleep(1);
                     continue;
@@ -139,4 +157,15 @@ void XAudioThread::run()
         }
         amux.unlock();
     }
+}
+
+void XAudioThread::SetPause(bool isPause)
+{
+	amux.lock();
+	this->isPause = isPause;
+	if (ap)
+	{
+		ap->SetPause(isPause);
+	}
+	amux.unlock();
 }

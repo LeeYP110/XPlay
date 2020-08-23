@@ -10,9 +10,23 @@ class XPlay : public QWidget
 public:
     XPlay(QWidget *parent = Q_NULLPTR);
     ~XPlay();
+
+	// 定时器, 滑动条显示
+	void timerEvent(QTimerEvent *e);
+	void resizeEvent(QResizeEvent *e);
+	void mouseDoubleClickEvent(QMouseEvent *e);
+	void SetPause(bool isPause);
+
 public slots:
     void OpenFile();
+	void PlayOrPause();
 
+
+	void SliderPress();
+	void SliderRelease();
+
+//public:
 private:
+	bool isSliderPress;
     Ui::XPlayClass ui;
 };

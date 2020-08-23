@@ -154,6 +154,21 @@ AVPacket * XDemux::Read()
     return pkt;
 }
 
+AVPacket * XDemux::ReadVideo()
+{
+	AVPacket *pkt = nullptr;
+	for (int i = 0; i < 20; i++)
+	{
+		pkt = Read();
+		if (pkt == nullptr || pkt->stream_index == videoIndex)
+		{
+			break;
+		}
+		av_packet_free(&pkt);
+	}	
+	return pkt;
+}
+
 void XDemux::FreeAVPacket(AVPacket ** pkt)
 {
     if (*pkt == nullptr)

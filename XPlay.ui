@@ -18,22 +18,51 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>681</width>
-     <height>511</height>
+     <width>960</width>
+     <height>540</height>
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="openFile">
    <property name="geometry">
     <rect>
-     <x>150</x>
-     <y>460</y>
+     <x>390</x>
+     <y>480</y>
      <width>75</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
     <string>打开文件</string>
+   </property>
+  </widget>
+  <widget class="XSlider" name="playPos">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>510</y>
+     <width>931</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="maximum">
+    <number>999</number>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="isPlay">
+   <property name="geometry">
+    <rect>
+     <x>490</x>
+     <y>480</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>播放</string>
    </property>
   </widget>
  </widget>
@@ -44,20 +73,25 @@
    <extends>QOpenGLWidget</extends>
    <header>XVideoWidget.h</header>
   </customwidget>
+  <customwidget>
+   <class>XSlider</class>
+   <extends>QSlider</extends>
+   <header>XSlider.h</header>
+  </customwidget>
  </customwidgets>
  <resources>
   <include location="XPlay.qrc"/>
  </resources>
  <connections>
   <connection>
-   <sender>pushButton</sender>
+   <sender>openFile</sender>
    <signal>clicked()</signal>
    <receiver>XPlayClass</receiver>
    <slot>OpenFile()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>186</x>
-     <y>472</y>
+     <x>426</x>
+     <y>492</y>
     </hint>
     <hint type="destinationlabel">
      <x>203</x>
@@ -65,8 +99,59 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>isPlay</sender>
+   <signal>clicked()</signal>
+   <receiver>XPlayClass</receiver>
+   <slot>PlayOrPause()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>527</x>
+     <y>492</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>555</x>
+     <y>593</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>playPos</sender>
+   <signal>sliderPressed()</signal>
+   <receiver>XPlayClass</receiver>
+   <slot>SliderPress()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>90</x>
+     <y>517</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>193</x>
+     <y>578</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>playPos</sender>
+   <signal>sliderReleased()</signal>
+   <receiver>XPlayClass</receiver>
+   <slot>SliderRelease()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>228</x>
+     <y>519</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>497</x>
+     <y>653</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>OpenFile()</slot>
+  <slot>PlayOrPause()</slot>
+  <slot>SliderPress()</slot>
+  <slot>SliderRelease()</slot>
  </slots>
 </ui>

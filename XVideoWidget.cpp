@@ -134,11 +134,33 @@ void XVideoWidget::Repaint(AVFrame * frame)
         return;
     }
 
-    memcpy(datas[0], frame->data[0], width * height);
-    memcpy(datas[1], frame->data[1], width * height / 4);
-    memcpy(datas[2], frame->data[2], width * height / 4);
+	if (frame->linesize[0]== width)
+	{
+		memcpy(datas[0], frame->data[0], width * height);
+		memcpy(datas[1], frame->data[1], width * height / 4);
+		memcpy(datas[2], frame->data[2], width * height / 4);
+	}
+	else// 行对齐问题
+	{
+		for (int i = 0; i < height; i++)
+		{
+			memcpy(datas[0] + width * i, frame->data[0] + frame->linesize[0] * i, width);
+		}
 
-    // 行对齐问题
+		for (int i = 0; i < height /2; i++)
+		{
+			memcpy(datas[1] + width / 2 * i, frame->data[1] + frame->linesize[0] * i, width);
+		}
+
+		for (int i = 0; i < height /2; i++)
+		{
+			memcpy(datas[2] + width / 2 * i, frame->data[2] + frame->linesize[0] * i, width);
+		}
+	}
+
+
+
+    
     mux.unlock();
     av_frame_free(&frame);
     update();
@@ -164,7 +186,6 @@ void XVideoWidget::initializeGL()
 
     //编译shader
     qDebug() << "program.link() = " << program.link();
-
     qDebug() << "program.bind() = " << program.bind();
 
     //传递顶点和材质坐标
