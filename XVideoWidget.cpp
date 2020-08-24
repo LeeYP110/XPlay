@@ -20,8 +20,7 @@ const char* vString = GET_STR(
                           attribute vec4 vertexIn;
                           attribute vec2 textureIn;
                           varying   vec2 textureOut;
-                          void main(void)
-{
+void main(void) {
     gl_Position = vertexIn;
     textureOut = textureIn;
 }
@@ -33,8 +32,7 @@ const char *tString = GET_STR(
                           uniform sampler2D tex_y;
                           uniform sampler2D tex_u;
                           uniform sampler2D tex_v;
-                          void main(void)
-{
+void main(void) {
     vec3 yuv;
     vec3 rgb;
     yuv.x = texture2D(tex_y, textureOut).r;
@@ -48,16 +46,13 @@ const char *tString = GET_STR(
                       );
 
 XVideoWidget::XVideoWidget(QWidget *parent)
-    : QOpenGLWidget(parent)
-{
+    : QOpenGLWidget(parent) {
 }
 
-XVideoWidget::~XVideoWidget()
-{
+XVideoWidget::~XVideoWidget() {
 }
 
-void XVideoWidget::Init(int width, int height)
-{
+void XVideoWidget::Init(int width, int height) {
     mux.lock();
     this->width = width;
     this->height = height;
@@ -70,8 +65,7 @@ void XVideoWidget::Init(int width, int height)
     datas[1] = new unsigned char[width * height / 4];	// U
     datas[2] = new unsigned char[width * height / 4];	// V
 
-    if (texs[0])
-    {
+    if (texs[0]) {
         glDeleteTextures(3, texs);
     }
 
@@ -111,68 +105,63 @@ void XVideoWidget::Init(int width, int height)
     mux.unlock();
 }
 
-void XVideoWidget::initializeGL()
-{
-	qDebug() << "initializeGL";
+void XVideoWidget::initializeGL() {
+    qDebug() << "initializeGL";
 
-	mux.lock();
-	// 初始化O喷GL函数
-	initializeOpenGLFunctions();
+    mux.lock();
+    // 初始化O喷GL函数
+    initializeOpenGLFunctions();
 
-	// program加载ahader（顶点和片元）脚本
-	qDebug() << program.addShaderFromSourceCode(QGLShader::Fragment, tString);
-	qDebug() << program.addShaderFromSourceCode(QGLShader::Vertex, vString);
+    // program加载ahader（顶点和片元）脚本
+    qDebug() << program.addShaderFromSourceCode(QGLShader::Fragment, tString);
+    qDebug() << program.addShaderFromSourceCode(QGLShader::Vertex, vString);
 
-	//设置顶点坐标的变量
-	program.bindAttributeLocation("vertexIn", A_VER);
+    //设置顶点坐标的变量
+    program.bindAttributeLocation("vertexIn", A_VER);
 
-	//设置材质坐标
-	program.bindAttributeLocation("textureIn", T_VER);
+    //设置材质坐标
+    program.bindAttributeLocation("textureIn", T_VER);
 
-	//编译shader
-	qDebug() << "program.link() = " << program.link();
-	qDebug() << "program.bind() = " << program.bind();
+    //编译shader
+    qDebug() << "program.link() = " << program.link();
+    qDebug() << "program.bind() = " << program.bind();
 
-	//传递顶点和材质坐标
-	//顶点
-	static const GLfloat ver[] =
-	{
-		-1.0f,-1.0f,
-		1.0f,-1.0f,
-		-1.0f, 1.0f,
-		1.0f,1.0f
-	};
+    //传递顶点和材质坐标
+    //顶点
+    static const GLfloat ver[] = {
+        -1.0f,-1.0f,
+        1.0f,-1.0f,
+        -1.0f, 1.0f,
+        1.0f,1.0f
+    };
 
-	//材质
-	static const GLfloat tex[] =
-	{
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		0.0f, 0.0f,
-		1.0f, 0.0f
-	};
+    //材质
+    static const GLfloat tex[] = {
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+        0.0f, 0.0f,
+        1.0f, 0.0f
+    };
 
-	//顶点
-	glVertexAttribPointer(A_VER, 2, GL_FLOAT, 0, 0, ver);
-	glEnableVertexAttribArray(A_VER);
+    //顶点
+    glVertexAttribPointer(A_VER, 2, GL_FLOAT, 0, 0, ver);
+    glEnableVertexAttribArray(A_VER);
 
-	//材质
-	glVertexAttribPointer(T_VER, 2, GL_FLOAT, 0, 0, tex);
-	glEnableVertexAttribArray(T_VER);
+    //材质
+    glVertexAttribPointer(T_VER, 2, GL_FLOAT, 0, 0, tex);
+    glEnableVertexAttribArray(T_VER);
 
-	// 从shader获取材质
-	unis[0] = program.uniformLocation("tex_y");
-	unis[1] = program.uniformLocation("tex_u");
-	unis[2] = program.uniformLocation("tex_v");
+    // 从shader获取材质
+    unis[0] = program.uniformLocation("tex_y");
+    unis[1] = program.uniformLocation("tex_u");
+    unis[2] = program.uniformLocation("tex_v");
 
-	mux.unlock();
+    mux.unlock();
 }
 
 static bool recvFrame = false;
-void XVideoWidget::Repaint(AVFrame * frame)
-{
-    if (frame == nullptr)
-    {
+void XVideoWidget::Repaint(AVFrame * frame) {
+    if (frame == nullptr) {
         return;
     }
 
@@ -180,51 +169,42 @@ void XVideoWidget::Repaint(AVFrame * frame)
     if (datas[0] == nullptr ||
             this->width * this->height == 0 ||
             frame->width != this->width ||
-            frame->height != this->height)
-    {
+            frame->height != this->height) {
         av_frame_free(&frame);
         mux.unlock();
         return;
     }
 
-	if (frame->linesize[0]== width)
-	{
-		memcpy(datas[0], frame->data[0], width * height);
-		memcpy(datas[1], frame->data[1], width * height / 4);
-		memcpy(datas[2], frame->data[2], width * height / 4);
-	}
-	else// 行对齐问题
-	{
-		for (int i = 0; i < height; i++)
-		{
-			memcpy(datas[0] + width * i, frame->data[0] + frame->linesize[0] * i, width);
-		}
+    if (frame->linesize[0]== width) {
+        memcpy(datas[0], frame->data[0], width * height);
+        memcpy(datas[1], frame->data[1], width * height / 4);
+        memcpy(datas[2], frame->data[2], width * height / 4);
+    } else { // 行对齐问题
+        for (int i = 0; i < height; i++) {
+            memcpy(datas[0] + width * i, frame->data[0] + frame->linesize[0] * i, width);
+        }
 
-		for (int i = 0; i < height /2; i++)
-		{
-			memcpy(datas[1] + width / 2 * i, frame->data[1] + frame->linesize[0] * i, width);
-		}
+        for (int i = 0; i < height /2; i++) {
+            memcpy(datas[1] + width / 2 * i, frame->data[1] + frame->linesize[0] * i, width);
+        }
 
-		for (int i = 0; i < height /2; i++)
-		{
-			memcpy(datas[2] + width / 2 * i, frame->data[2] + frame->linesize[0] * i, width);
-		}
-	}    
+        for (int i = 0; i < height /2; i++) {
+            memcpy(datas[2] + width / 2 * i, frame->data[2] + frame->linesize[0] * i, width);
+        }
+    }
     mux.unlock();
     av_frame_free(&frame);
-	recvFrame = true;
+    recvFrame = true;
     update();
 }
 
-void XVideoWidget::paintGL()
-{
-	if (recvFrame == false)
-	{
-		return;
-	}
+void XVideoWidget::paintGL() {
+    qDebug() << "paintEvent";
+    if (recvFrame == false) {
+        return;
+    }
 
     mux.lock();
-
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texs[0]); // 0层绑定到Y材质
 
@@ -259,8 +239,8 @@ void XVideoWidget::paintGL()
     mux.unlock();
 }
 
-void XVideoWidget::resizeGL(int width, int height)
-{
+
+void XVideoWidget::resizeGL(int width, int height) {
     mux.lock();
     qDebug() << "resizeGL" << width << " " << height;
     mux.unlock();

@@ -3,10 +3,6 @@
 #include "XVideoThread.h"
 #include "XAudioThread.h"
 
-// extern "C" {
-// #include "libavformat/avformat.h"
-// }
-
 XDemuxThread::XDemuxThread() {
 }
 
@@ -131,7 +127,7 @@ void XDemuxThread::Seek(double pos) {
     bool status = this->isPause;
     mux.unlock();
 
-    // 必须先暂停再清理，否则容易造成，音视频数据包达到最大，阻塞
+    // 必须先暂停再清理，否则容易造成，音视频数据包达到最大，阻塞???
     Clear();
     SetPause(true);
 

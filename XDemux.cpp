@@ -86,6 +86,7 @@ bool XDemux::Open(const char * url) {
         std::cout << "width:" << as->codecpar->width << std::endl;// width、height有可能不存在
         std::cout << "height:" << as->codecpar->height << std::endl;
         std::cout << "video fps:" << r2d(as->avg_frame_rate) << std::endl;// 帧率 fps 分数转换
+        fps = r2d(as->avg_frame_rate);
 
         width = as->codecpar->width;
         height = as->codecpar->height;

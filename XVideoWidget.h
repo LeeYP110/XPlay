@@ -10,11 +10,10 @@
 
 struct AVFrame;
 
-class XVideoWidget : public QOpenGLWidget, protected QOpenGLFunctions, public IVideoCall
-{
+class XVideoWidget : public QOpenGLWidget, protected QOpenGLFunctions, public IVideoCall {
     Q_OBJECT
 
-public:
+  public:
     XVideoWidget(QWidget *parent);
     ~XVideoWidget();
 
@@ -22,7 +21,7 @@ public:
 
     // 不管成功与否都释放frame空间
     virtual void Repaint(AVFrame* frame);
-protected:
+  protected:
     // 初始化
     void initializeGL();
 
@@ -32,7 +31,7 @@ protected:
     // 窗口变化
     void resizeGL(int width, int height);
 
-private:
+  private:
     std::mutex mux;
 
     // shader程序

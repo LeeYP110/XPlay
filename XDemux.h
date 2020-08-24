@@ -7,9 +7,8 @@ struct AVFormatContext;
 struct AVPacket;
 struct AVCodecParameters;
 
-class XDemux
-{
-public:
+class XDemux {
+  public:
     XDemux();
     virtual ~XDemux();
 
@@ -18,7 +17,7 @@ public:
 
     // 空间需要调用者释放，释放AVPacket空间和数据空间 av_packet_free
     virtual AVPacket* Read();
-	virtual AVPacket* ReadVideo();
+    virtual AVPacket* ReadVideo();
     virtual void FreeAVPacket(AVPacket** pkt);
 
     virtual bool IsAudio(AVPacket* pkt);
@@ -40,10 +39,11 @@ public:
     int64_t totalMs = 0;
     int width = 0;
     int height = 0;
+    int fps = 25;
 
     int sampleRate = 44100;
     int channels = 2;
-protected:
+  protected:
     std::mutex mux;
     AVFormatContext* ic = nullptr;
 
