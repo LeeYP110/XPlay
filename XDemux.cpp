@@ -14,29 +14,24 @@ extern "C"
 #pragma comment(lib, "swscale.lib")
 #pragma comment(lib, "swresample.lib")
 
-static double r2d(AVRational r)
-{
+static double r2d(AVRational r) {
     return r.den == 0 ? 0 : (double)r.num / (double)r.den;
 }
 
-XDemux::XDemux()
-{
+XDemux::XDemux() {
 }
 
 
-XDemux::~XDemux()
-{
+XDemux::~XDemux() {
 }
 
-bool XDemux::Open(const char * url)
-{
+bool XDemux::Open(const char * url) {
     Close();
 
     static bool isFirst = true;
     static std::mutex dmux;
     dmux.lock();
-    if (isFirst)
-    {
+    if (isFirst) {
         // 初始化封装库
         //avcodec_register_all();
 
@@ -60,8 +55,7 @@ bool XDemux::Open(const char * url)
                      &opts
                  );
 
-    if (result != 0)
-    {
+    if (result != 0) {
         mux.unlock();
         char buf[1024] = { 0 };
         av_strerror(result, buf, sizeof(buf) - 1);
@@ -73,8 +67,7 @@ bool XDemux::Open(const char * url)
 
     // retrieve stream information
     result = avformat_find_stream_info(ic, NULL);
-    if (result < 0)
-    {
+    if (result < 0) {
         fprintf(stderr, "Could not find stream information\n");
     }
 
@@ -83,43 +76,45 @@ bool XDemux::Open(const char * url)
     std::cout << "TotalMs: " << totalMs << std::endl;
     //av_dump_format(ic, 0, ic->url, 0);
 
+    AVStream* as = nullptr;
     videoIndex = av_find_best_stream(ic, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
-    AVStream* as = ic->streams[videoIndex];
-    std::cout << "///////////////////video//////////////////" << std::endl;
-    std::cout << "format:" << as->codecpar->format << std::endl;
-    std::cout << "codec_id:" << as->codecpar->codec_id << std::endl;
-    std::cout << "width:" << as->codecpar->width << std::endl;// width、height有可能不存在
-    std::cout << "height:" << as->codecpar->height << std::endl;
-    std::cout << "video fps:" << r2d(as->avg_frame_rate) << std::endl;// 帧率 fps 分数转换
+    if (videoIndex >= 0) {
+        as = ic->streams[videoIndex];
+        std::cout << "///////////////////video//////////////////" << std::endl;
+        std::cout << "format:" << as->codecpar->format << std::endl;
+        std::cout << "codec_id:" << as->codecpar->codec_id << std::endl;
+        std::cout << "width:" << as->codecpar->width << std::endl;// width、height有可能不存在
+        std::cout << "height:" << as->codecpar->height << std::endl;
+        std::cout << "video fps:" << r2d(as->avg_frame_rate) << std::endl;// 帧率 fps 分数转换
 
-    width = as->codecpar->width;
-    height = as->codecpar->height;
+        width = as->codecpar->width;
+        height = as->codecpar->height;
+    }
 
     std::cout << "///////////////////audio//////////////////" << std::endl;
     audioIndex = av_find_best_stream(ic, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
-    as = ic->streams[audioIndex];
-    std::cout << "sample_rate:" << as->codecpar->sample_rate << std::endl;
-    std::cout << "format:" << as->codecpar->format << std::endl;
-    std::cout << "channels:" << as->codecpar->channels << std::endl;
-    std::cout << "codec_id:" << as->codecpar->codec_id << std::endl;
-    std::cout << "audio fps:" << r2d(as->avg_frame_rate) << std::endl;
-    sampleRate = as->codecpar->sample_rate;
-    channels = as->codecpar->channels;
+    if (audioIndex >= 0) {
+        as = ic->streams[audioIndex];
+        std::cout << "sample_rate:" << as->codecpar->sample_rate << std::endl;
+        std::cout << "format:" << as->codecpar->format << std::endl;
+        std::cout << "channels:" << as->codecpar->channels << std::endl;
+        std::cout << "codec_id:" << as->codecpar->codec_id << std::endl;
+        std::cout << "audio fps:" << r2d(as->avg_frame_rate) << std::endl;
+        sampleRate = as->codecpar->sample_rate;
+        channels = as->codecpar->channels;
 
-    // 一帧数据 单通道的样本数
-    std::cout << "audio frame_size:" << as->codecpar->frame_size << std::endl;
-    // as->codecpar->frame_size * as->codecpar->channels * 样本格式占用字节
-
+        // 一帧数据 单通道的样本数
+        std::cout << "audio frame_size:" << as->codecpar->frame_size << std::endl;
+        // as->codecpar->frame_size * as->codecpar->channels * 样本格式占用字节
+    }
     mux.unlock();
 
     return true;
 }
 
-AVPacket * XDemux::Read()
-{
+AVPacket * XDemux::Read() {
     mux.lock();
-    if (ic == nullptr)
-    {
+    if (ic == nullptr) {
         mux.unlock();
         return nullptr;
     }
@@ -128,9 +123,8 @@ AVPacket * XDemux::Read()
 
     // 读取一帧并分配空间
     int re = av_read_frame(ic, pkt);
-	
-    if (re != 0)
-    {
+
+    if (re != 0) {
         mux.unlock();
         av_packet_free(&pkt);
         return nullptr;
@@ -154,49 +148,39 @@ AVPacket * XDemux::Read()
     return pkt;
 }
 
-AVPacket * XDemux::ReadVideo()
-{
-	AVPacket *pkt = nullptr;
-	for (int i = 0; i < 20; i++)
-	{
-		pkt = Read();
-		if (pkt == nullptr || pkt->stream_index == videoIndex)
-		{
-			break;
-		}
-		av_packet_free(&pkt);
-	}	
-	return pkt;
+AVPacket * XDemux::ReadVideo() {
+    AVPacket *pkt = nullptr;
+    for (int i = 0; i < 20; i++) {
+        pkt = Read();
+        if (pkt == nullptr || pkt->stream_index == videoIndex) {
+            break;
+        }
+        av_packet_free(&pkt);
+    }
+    return pkt;
 }
 
-void XDemux::FreeAVPacket(AVPacket ** pkt)
-{
-    if (*pkt == nullptr)
-    {
+void XDemux::FreeAVPacket(AVPacket ** pkt) {
+    if (*pkt == nullptr) {
         return;
     }
     av_packet_free(pkt);
 }
 
-bool XDemux::IsAudio(AVPacket * pkt)
-{
-    if (pkt == nullptr)
-    {
+bool XDemux::IsAudio(AVPacket * pkt) {
+    if (pkt == nullptr) {
         return false;
     }
 
-    if (pkt->stream_index == videoIndex)
-    {
+    if (pkt->stream_index == videoIndex) {
         return false;
     }
     return true;
 }
 
-AVCodecParameters * XDemux::CopyVPara()
-{
+AVCodecParameters * XDemux::CopyVPara() {
     mux.lock();
-    if (ic == nullptr)
-    {
+    if (ic == nullptr) {
         mux.unlock();
         return nullptr;
     }
@@ -207,11 +191,9 @@ AVCodecParameters * XDemux::CopyVPara()
     return pa;
 }
 
-AVCodecParameters * XDemux::CopyAPara()
-{
+AVCodecParameters * XDemux::CopyAPara() {
     mux.lock();
-    if (ic == nullptr)
-    {
+    if (ic == nullptr || audioIndex < 0) {
         mux.unlock();
         return nullptr;
     }
@@ -222,11 +204,9 @@ AVCodecParameters * XDemux::CopyAPara()
     return pa;
 }
 
-bool XDemux::Seek(double pos)
-{
+bool XDemux::Seek(double pos) {
     mux.lock();
-    if (ic == nullptr)
-    {
+    if (ic == nullptr) {
         mux.unlock();
         return false;
     }
@@ -240,18 +220,15 @@ bool XDemux::Seek(double pos)
     int re = av_seek_frame(ic, videoIndex, seekPos, AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME);
 
     mux.unlock();
-    if (re < 0)
-    {
+    if (re < 0) {
         return false;
     }
     return true;
 }
 
-void XDemux::Clear()
-{
+void XDemux::Clear() {
     mux.lock();
-    if (ic == nullptr)
-    {
+    if (ic == nullptr) {
         mux.unlock();
         return;
     }
@@ -261,11 +238,9 @@ void XDemux::Clear()
     mux.unlock();
 }
 
-void XDemux::Close()
-{
+void XDemux::Close() {
     mux.lock();
-    if (ic == nullptr)
-    {
+    if (ic == nullptr) {
         mux.unlock();
         return;
     }
