@@ -160,6 +160,7 @@ void XDemuxThread::Seek(double pos) {
 }
 
 void XDemuxThread::run() {
+    bool isAudio = false;
     while (!isExit) {
         mux.lock();
         if (isPause) {
@@ -190,28 +191,24 @@ void XDemuxThread::run() {
             msleep(5);
             continue;
         }
+        isAudio = demux->IsAudio(pkt);
+        mux.unlock();
 
         // ÅÐ¶ÏÒôÊÓÆµ
-        if (demux->IsAudio(pkt)) {
+        if (isAudio) {
             if (at != nullptr) {
-                //std::cout << "audio" << std::endl;
                 at->Push(pkt);
-                //std::cout << "audio over" << std::endl;
             }
         } else {
             if (vt != nullptr) {
-                //std::cout << "video" << std::endl;
                 vt->Push(pkt);
-                //std::cout << "v over" << std::endl;
             }
         }
-
-        mux.unlock();
     }
 }
 
 void XDemuxThread::SetPause(bool isPause) {
-    mux.lock(); // ´æÔÚÒ»¶¨×èÈû
+    mux.lock();
     this->isPause = isPause;
     if (at) {
         at->SetPause(isPause);
