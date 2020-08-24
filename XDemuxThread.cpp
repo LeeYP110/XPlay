@@ -127,21 +127,23 @@ void XDemuxThread::Clear() {
 }
 
 void XDemuxThread::Seek(double pos) {
-    // 清理缓冲
-    Clear();
-
     mux.lock();
     bool status = this->isPause;
     mux.unlock();
 
-    // 暂停
+    // 必须先暂停再清理，否则容易造成，音视频数据包达到最大，阻塞
+    Clear();
     SetPause(true);
 
+    // 暂停
+    std::cout << "3" << std::endl;
+    std::cout << "4" << std::endl;
     mux.lock();
+    std::cout << "5" << std::endl;
     if (demux) {
         demux->Seek(pos);
     }
-
+    std::cout << "6" << std::endl;
     // 实际的seek帧
     long long seekPts = pos * demux->totalMs;
     pts = seekPts;
@@ -155,10 +157,10 @@ void XDemuxThread::Seek(double pos) {
             break;
         }
     }
-
     mux.unlock();
-
+    std::cout << "7" << std::endl;
     SetPause(status);// seek保持seek时状态
+    std::cout << "8" << std::endl;
 }
 
 void XDemuxThread::run() {
@@ -196,11 +198,15 @@ void XDemuxThread::run() {
         // 判断音视频
         if (demux->IsAudio(pkt)) {
             if (at != nullptr) {
+                //std::cout << "audio" << std::endl;
                 at->Push(pkt);
+                //std::cout << "audio over" << std::endl;
             }
         } else {
             if (vt != nullptr) {
+                //std::cout << "video" << std::endl;
                 vt->Push(pkt);
+                //std::cout << "v over" << std::endl;
             }
         }
 
@@ -209,7 +215,7 @@ void XDemuxThread::run() {
 }
 
 void XDemuxThread::SetPause(bool isPause) {
-    //mux.lock(); // 存在一定阻塞
+    mux.lock(); // 存在一定阻塞
     this->isPause = isPause;
     if (at) {
         at->SetPause(isPause);
@@ -218,5 +224,5 @@ void XDemuxThread::SetPause(bool isPause) {
     if (vt) {
         vt->SetPause(isPause);
     }
-    //mux.unlock();
+    mux.unlock();
 }

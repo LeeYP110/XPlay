@@ -34,8 +34,6 @@ bool XVideoThread::Open(AVCodecParameters * para, IVideoCall* call, int width, i
     return re;
 }
 
-
-
 void XVideoThread::run() {
     while (!isExit) {
         vmux.lock();

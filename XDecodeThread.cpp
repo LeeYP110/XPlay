@@ -1,49 +1,40 @@
 #include "XDecodeThread.h"
 
 
-XDecodeThread::XDecodeThread()
-{
-    if (decode == nullptr)
-    {
+XDecodeThread::XDecodeThread() {
+    if (decode == nullptr) {
         decode = new XDecode();
     }
 }
 
-XDecodeThread::~XDecodeThread()
-{
+XDecodeThread::~XDecodeThread() {
     isExit = true;
     wait();
 }
 
 
 
-void XDecodeThread::Push(AVPacket * pkt)
-{
-    if (pkt == nullptr)
-    {
+void XDecodeThread::Push(AVPacket * pkt) {
+    if (pkt == nullptr) {
         return;
     }
 
     // ×èÈû
-    while (!isExit)
-    {
+    while (!isExit) {
         mux.lock();
-        if (packs.size() < maxList)
-        {
+        if (packs.size() < maxList) {
             packs.push_back(pkt);
             mux.unlock();
             break;
         }
         mux.unlock();
-        msleep(1);
+        msleep(5);
     }
 }
 
-AVPacket * XDecodeThread::Pop()
-{
+AVPacket * XDecodeThread::Pop() {
     mux.lock();
-    if (packs.empty() || !decode)
-    {
+    if (packs.empty() || !decode) {
         mux.unlock();
         return nullptr;
     }
@@ -54,21 +45,18 @@ AVPacket * XDecodeThread::Pop()
     return pkt;
 }
 
-void XDecodeThread::Clear()
-{
+void XDecodeThread::Clear() {
     mux.lock();
     decode->Clear();
-    while (!packs.empty())
-    {
+    while (!packs.empty()) {
         AVPacket* pkt = packs.front();
         XFreePacket(&pkt);
         packs.pop_front();
-    }	
+    }
     mux.unlock();
 }
 
-void XDecodeThread::Close()
-{
+void XDecodeThread::Close() {
     Clear();
     isExit = true;
     wait();

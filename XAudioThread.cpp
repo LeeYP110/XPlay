@@ -3,29 +3,23 @@
 #include "XAudioPlay.h"
 #include "XResample.h"
 
-XAudioThread::XAudioThread()
-{
+XAudioThread::XAudioThread() {
     maxList = 1;
 
-    if (res == nullptr)
-    {
+    if (res == nullptr) {
         res = new XResample();
     }
 
-    if (ap == nullptr)
-    {
+    if (ap == nullptr) {
         ap = XAudioPlay::Get();
     }
 }
 
-XAudioThread::~XAudioThread()
-{
+XAudioThread::~XAudioThread() {
 }
 
-bool XAudioThread::Open(AVCodecParameters * para, int sampleRate, int channels)
-{
-    if (para == nullptr)
-    {
+bool XAudioThread::Open(AVCodecParameters * para, int sampleRate, int channels) {
+    if (para == nullptr) {
         return false;
     }
 
@@ -36,8 +30,7 @@ bool XAudioThread::Open(AVCodecParameters * para, int sampleRate, int channels)
     amux.lock();
     pts = 0;
     bool re = res->Open(para, false);
-    if (re == false)
-    {
+    if (re == false) {
         std::cout << "res->Open(para, false) failed" << std::endl;
         //mux.unlock();
         //return false;
@@ -46,16 +39,14 @@ bool XAudioThread::Open(AVCodecParameters * para, int sampleRate, int channels)
     ap->sampleRate = sampleRate;
     ap->channels = channels;
     re = ap->Open();
-    if (re == false)
-    {
+    if (re == false) {
         std::cout << "ap->Open() failed" << std::endl;
         //mux.unlock();
         //return false;
     }
 
     re = decode->Open(para); // 函数中释放para
-    if (re == false)
-    {
+    if (re == false) {
         std::cout << "audio decode->Open(para) failed" << std::endl;
         //mux.unlock();
         //return false;
@@ -65,23 +56,19 @@ bool XAudioThread::Open(AVCodecParameters * para, int sampleRate, int channels)
     return re;
 }
 
-void XAudioThread::Clear()
-{
-	XDecodeThread::Clear();
-	mux.lock();
-	if (ap)
-	{
-		ap->Clear();
-	}
-	mux.unlock();
+void XAudioThread::Clear() {
+    XDecodeThread::Clear();
+    mux.lock();
+    if (ap) {
+        ap->Clear();
+    }
+    mux.unlock();
 }
 
-void XAudioThread::Close()
-{
+void XAudioThread::Close() {
     XDecodeThread::Close();
 
-    if (res)
-    {
+    if (res) {
         res->Close();
         amux.lock();
         delete res;
@@ -89,8 +76,7 @@ void XAudioThread::Close()
         amux.unlock();
     }
 
-    if (ap)
-    {
+    if (ap) {
         ap->Close();
         amux.lock();
         ap = nullptr;
@@ -99,35 +85,29 @@ void XAudioThread::Close()
 }
 
 
-void XAudioThread::run()
-{
+void XAudioThread::run() {
     unsigned char* pcm = new unsigned char[1024 * 1024];
 
-    while (!isExit)
-    {
+    while (!isExit) {
         amux.lock();
-		if (isPause)
-		{
-			amux.unlock();
-			msleep(1);
-			continue;
-		}
+        if (isPause) {
+            amux.unlock();
+            msleep(1);
+            continue;
+        }
 
         AVPacket* pkt = Pop();
         bool re = decode->Send(pkt);
-        if (re == false)
-        {
+        if (re == false) {
             amux.unlock();
             msleep(1);
             continue;
         }
 
         // 一次send 多次recv
-        while (!isExit)
-        {
+        while (!isExit) {
             AVFrame* frame = decode->Recv();
-            if (!frame)
-            {
+            if (!frame) {
                 break;
             }
 
@@ -139,15 +119,12 @@ void XAudioThread::run()
             int size = res->Resample(frame, pcm);
 
             // 播放音频
-            while (!isExit)
-            {
-                if (size <= 0)
-                {
+            while (!isExit) {
+                if (size <= 0) {
                     break;
                 }
 
-                if (ap->GetFree() < size || isPause)
-                {
+                if (ap->GetFree() < size || isPause) {
                     msleep(1);
                     continue;
                 }
@@ -159,13 +136,11 @@ void XAudioThread::run()
     }
 }
 
-void XAudioThread::SetPause(bool isPause)
-{
-	amux.lock();
-	this->isPause = isPause;
-	if (ap)
-	{
-		ap->SetPause(isPause);
-	}
-	amux.unlock();
+void XAudioThread::SetPause(bool isPause) {
+    //amux.lock();
+    this->isPause = isPause;
+    if (ap) {
+        ap->SetPause(isPause);
+    }
+    //amux.unlock();
 }
