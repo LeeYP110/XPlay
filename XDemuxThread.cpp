@@ -4,6 +4,7 @@
 #include "XAudioThread.h"
 
 XDemuxThread::XDemuxThread() {
+    isExit = false;
 }
 
 XDemuxThread::~XDemuxThread() {
@@ -15,7 +16,7 @@ bool XDemuxThread::Open(const char* url, IVideoCall * call) {
     if (url == nullptr || url[0] == '\0') {
         return false;
     }
-
+    isExit = false;
     mux.lock();
     if (demux == nullptr) {
         demux = new XDemux();
@@ -87,12 +88,16 @@ bool XDemuxThread::Start() {
     }
 
     mux.unlock();
-    return false;
+    return true;
 }
 
 void XDemuxThread::Close() {
+
     isExit = true;
+    vt->Clear();
+    at->Clear();
     wait();
+
     if (vt) {
         vt->Close();
     }
@@ -201,7 +206,7 @@ void XDemuxThread::run() {
             }
         } else {
             if (vt != nullptr) {
-                vt->Push(pkt);
+                vt->Push(pkt);// TODO 存在阻塞性问题
             }
         }
     }

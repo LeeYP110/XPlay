@@ -135,17 +135,6 @@ AVPacket * XDemux::Read() {
     pkt->pts = pkt->pts * (r2d(ic->streams[pkt->stream_index]->time_base) * 1000);
     pkt->dts = pkt->dts * (r2d(ic->streams[pkt->stream_index]->time_base) * 1000);
     mux.unlock();
-
-    //if (IsAudio(pkt))
-    //{
-    //    std::cout << "audio" << std::endl;
-    //}
-    //else
-    //{
-    //    std::cout << "video" << std::endl;
-    //}
-
-    //std::cout << "pkt->pts" <<  pkt->pts << std::flush << std::endl;
     return pkt;
 }
 

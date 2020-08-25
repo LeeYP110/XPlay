@@ -14,7 +14,6 @@ extern "C"
 #define A_VER 3
 #define T_VER 4
 
-
 // ¶¥µãshader
 const char* vString = GET_STR(
                           attribute vec4 vertexIn;
@@ -199,10 +198,10 @@ void XVideoWidget::Repaint(AVFrame * frame) {
 }
 
 void XVideoWidget::paintGL() {
-    qDebug() << "paintEvent";
     if (recvFrame == false) {
         return;
     }
+    //qDebug() << "paintGL";
 
     mux.lock();
     glActiveTexture(GL_TEXTURE0);
@@ -245,3 +244,9 @@ void XVideoWidget::resizeGL(int width, int height) {
     qDebug() << "resizeGL" << width << " " << height;
     mux.unlock();
 }
+
+//void XVideoWidget::paintEvent(QPaintEvent * e) {
+//    mux.lock();
+//    qDebug() << "paintEvent";
+//    mux.unlock();
+//}

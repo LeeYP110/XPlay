@@ -31,6 +31,8 @@ class XVideoWidget : public QOpenGLWidget, protected QOpenGLFunctions, public IV
     // ´°¿Ú±ä»¯
     void resizeGL(int width, int height);
 
+    //void paintEvent(QPaintEvent *e);
+
   private:
     std::mutex mux;
 

@@ -3,30 +3,30 @@
 #include <QtWidgets/QWidget>
 #include "ui_XPlay.h"
 
-class XPlay : public QWidget
-{
+class XPlay : public QWidget {
     Q_OBJECT
 
-public:
+  public:
     XPlay(QWidget *parent = Q_NULLPTR);
     ~XPlay();
 
-	// 定时器, 滑动条显示
-	void timerEvent(QTimerEvent *e);
-	void resizeEvent(QResizeEvent *e);
-	void mouseDoubleClickEvent(QMouseEvent *e);
-	void SetPause(bool isPause);
+    // 定时器, 滑动条显示
+    void timerEvent(QTimerEvent *e);
+    void resizeEvent(QResizeEvent *e);
+    void mouseDoubleClickEvent(QMouseEvent *e);
+    void SetPause(bool isPause);
 
-public slots:
+  public slots:
     void OpenFile();
-	void PlayOrPause();
+    void PlayOrPause();
 
 
-	void SliderPress();
-	void SliderRelease();
+    void SliderPress();
+    void SliderRelease();
 
 //public:
-private:
-	bool isSliderPress;
+  private:
+    bool isSliderPress;
+    bool isOpen;
     Ui::XPlayClass ui;
 };

@@ -5,6 +5,7 @@ XDecodeThread::XDecodeThread() {
     if (decode == nullptr) {
         decode = new XDecode();
     }
+    isExit = false;
 }
 
 XDecodeThread::~XDecodeThread() {
@@ -66,6 +67,5 @@ void XDecodeThread::Close() {
     mux.lock();
     delete decode;
     decode = nullptr;
-
     mux.unlock();
 }
