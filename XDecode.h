@@ -8,9 +8,8 @@ struct AVFrame;
 struct AVPacket;
 extern void XFreePacket(AVPacket** pkt);
 extern void XFreeFrame(AVFrame ** frame);
-class XDecode
-{
-public:
+class XDecode {
+  public:
     XDecode();
     virtual ~XDecode();
 
@@ -19,6 +18,7 @@ public:
 
     // 当前解码到的pts
     long long pts = 0;
+    int key_frame = 0;
     virtual bool Open(AVCodecParameters* para);
 
     // 发送到解码线程，清理pkg空间（对象和媒体内容）
@@ -31,7 +31,7 @@ public:
     virtual void Clear();
     virtual void Close();
 
-protected:
+  protected:
     AVCodecContext* codec = nullptr;
     std::mutex mux;
 };

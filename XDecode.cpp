@@ -10,47 +10,38 @@ extern "C"
 }
 
 
-void XFreePacket(AVPacket ** pkt)
-{
-    if (pkt == nullptr || *pkt == nullptr)
-    {
+void XFreePacket(AVPacket ** pkt) {
+    if (pkt == nullptr || *pkt == nullptr) {
         return;
     }
     av_packet_free(pkt);
     *pkt = nullptr;
 }
 
-void XFreeFrame(AVFrame ** frame)
-{
-	if (frame == nullptr || *frame == nullptr)
-	{
-		return;
-	}
-	av_frame_free(frame);
-	*frame = nullptr;
+void XFreeFrame(AVFrame ** frame) {
+    if (frame == nullptr || *frame == nullptr) {
+        return;
+    }
+    av_frame_free(frame);
+    *frame = nullptr;
 }
 
-XDecode::XDecode()
-{
+XDecode::XDecode() {
 }
 
-XDecode::~XDecode()
-{
+XDecode::~XDecode() {
 }
 
-bool XDecode::Open(AVCodecParameters * para)
-{
+bool XDecode::Open(AVCodecParameters * para) {
     Close();
 
-    if (para == nullptr)
-    {
+    if (para == nullptr) {
         return false;
     }
 
     // 找到解码器
     AVCodec* vcodec = avcodec_find_decoder(para->codec_id);
-    if (vcodec == nullptr)
-    {
+    if (vcodec == nullptr) {
         avcodec_parameters_free(&para);
         std::cout << "can't find the codec id: " << para->codec_id << std::endl;
 
@@ -69,8 +60,7 @@ bool XDecode::Open(AVCodecParameters * para)
 
     // 打开解码器上下文
     int result = avcodec_open2(codec, 0, 0);
-    if (result < 0)
-    {
+    if (result < 0) {
         avcodec_free_context(&codec);
         mux.unlock();
         fprintf(stderr, "avcodec_open2 failed\n");
@@ -83,36 +73,30 @@ bool XDecode::Open(AVCodecParameters * para)
     return true;
 }
 
-bool XDecode::Send(AVPacket * pkt)
-{
-    if (pkt == nullptr || pkt->size < 0 || pkt->data == nullptr)
-    {
+bool XDecode::Send(AVPacket * pkt) {
+    if (pkt == nullptr || pkt->size < 0 || pkt->data == nullptr) {
         return false;
     }
 
     mux.lock();
-    if (codec == nullptr)
-    {
+    if (codec == nullptr) {
         mux.unlock();
         return false;
     }
 
-    int re = avcodec_send_packet(codec, pkt);	
+    int re = avcodec_send_packet(codec, pkt);
     mux.unlock();
 
     av_packet_free(&pkt);
-    if (re != 0)
-    {
+    if (re != 0) {
         return false;
     }
     return true;
 }
 
-AVFrame * XDecode::Recv()
-{
+AVFrame * XDecode::Recv() {
     mux.lock();
-    if (codec == nullptr)
-    {
+    if (codec == nullptr) {
         mux.unlock();
         return nullptr;
     }
@@ -121,8 +105,7 @@ AVFrame * XDecode::Recv()
     int re = avcodec_receive_frame(codec, frame);
     mux.unlock();
 
-    if (re != 0)
-    {
+    if (re != 0) {
         //char buf[1024] = { 0 };
         //av_strerror(re, buf, sizeof(buf) - 1);
         //std::cout << buf << std::endl;
@@ -133,25 +116,22 @@ AVFrame * XDecode::Recv()
     //std::cout << frame->linesize[0] << " " << std::flush;
 
     pts = frame->pts;
+    key_frame = frame->key_frame;
     return frame;
 }
 
-void XDecode::Clear()
-{
+void XDecode::Clear() {
     mux.lock();
     // 清理解码缓冲
-    if (codec != nullptr)
-    {
+    if (codec != nullptr) {
         avcodec_flush_buffers(codec);
     }
     mux.unlock();
 }
 
-void XDecode::Close()
-{
+void XDecode::Close() {
     mux.lock();
-    if (codec != nullptr)
-    {
+    if (codec != nullptr) {
         avcodec_close(codec);
         avcodec_free_context(&codec);
     }

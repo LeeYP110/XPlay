@@ -87,6 +87,7 @@ void XAudioThread::Close() {
 
 void XAudioThread::run() {
     unsigned char* pcm = new unsigned char[1024 * 1024];
+    memset(pcm, 0, 1024 * 1024); // 必须设置，否则在重采样中会导致崩溃
 
     while (!isExit) {
         amux.lock();

@@ -61,6 +61,8 @@ void XVideoThread::run() {
 //
 //         AVPacket* pkt = packs.front();
 //         packs.pop_front();
+        static int sendNum = 0;
+        static int recvNum = 0;
 
         AVPacket* pkt = Pop();
         bool re = decode->Send(pkt);
@@ -69,16 +71,17 @@ void XVideoThread::run() {
             msleep(1);
             continue;
         }
-
+        sendNum++;
         // 一次send 多次recv
         while (!isExit) {
             AVFrame* frame = decode->Recv();
             if (!frame) {
                 break;
             }
-
+            recvNum++;
             // 显示视频
             if (call) {
+                msleep(40);
                 call->Repaint(frame);
             }
         }
